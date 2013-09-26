@@ -5,6 +5,7 @@ class MoveError < StandardError
 end
 
 class Board
+  attr_reader :grid
 
   def initialize
     @grid = Array.new(8) { Array.new(8) }
@@ -44,7 +45,7 @@ class Board
         if piece.nil?
           print "   ".colorize(:background => background_color)
         else
-          checkers_symbol = piece.king ? "\u25EF".encode(UTF-8) : "\u2B24".encode("UTF-8")
+          checkers_symbol = piece.king ? "\u25EF".encode("UTF-8") : "\u2B24".encode("UTF-8")
           print " #{checkers_symbol} ".colorize(:color => piece.color, :background => background_color)
         end
       end
@@ -93,6 +94,20 @@ class Board
       else
         perform_slide(from_position, to_position)
       end
+      king_me(to_position)
+    end
+  end
+
+  def king_me(to_position)
+    piece = get_piece_at_position(to_position[0], to_position[1])
+    if piece.color == :red
+      if to_position[0] == 0
+        piece.king = true
+      end
+    else #piece.color = :black
+      if to_position[0] == 7
+        piece.king = true
+      end
     end
   end
 
@@ -100,6 +115,13 @@ class Board
     if get_piece_at_position(from_position[0], from_position[1]).color != current_color
       raise MoveError.new "That piece is not yours!"
     end
+  end
+
+  def piece_there?(from_position)
+    if get_piece_at_position(from_position[0], from_position[1]).nil?
+      return false
+    end
+    return true
   end
 
   def valid_move?(from_position, to_position)
