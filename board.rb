@@ -64,21 +64,17 @@ class Board
   end
 
   def perform_slide(from_position, to_position)
-#    if valid_move?(from_position, to_position)
       piece = get_piece_at_position(from_position[0], from_position[1])
       @grid[from_position[0]][from_position[1]] = nil
       @grid[to_position[0]][to_position[1]] = piece
-#    end
   end
 
   def perform_jump(from_position, to_position)
-    # if valid_move?(from_position, to_position)
       piece = get_piece_at_position(from_position[0], from_position[1])
       @grid[from_position[0]][from_position[1]] = nil
       @grid[to_position[0]][to_position[1]] = piece
       between_position_row, between_position_column = position_in_between(from_position, to_position)
       @grid[between_position_row][between_position_column] = nil
-    # end
   end
 
   def position_in_between(from_position, to_position)
@@ -89,25 +85,45 @@ class Board
     return between_position_row, between_position_column
   end
 
+  def move(from_position, to_position)
+    p valid_move?(from_position, to_position)
+    if valid_move?(from_position, to_position)
+      if jump_move?(from_position, to_position)
+        perform_jump(from_position, to_position)
+      else
+        perform_slide(from_position, to_position)
+      end
+    end
+  end
+
+  def my_piece?(from_position, current_color)
+    if get_piece_at_position(from_position[0], from_position[1]).color != current_color
+      raise MoveError.new "That piece is not yours!"
+    end
+  end
+
   def valid_move?(from_position, to_position)
     piece = get_piece_at_position(from_position[0], from_position[1])
     possible_moves = possible_moves(from_position, piece)
 
-    if !get_piece_at_position[to_position[0], to_position[1]).nil?
-      raise MoveError "That position is occupied."
+    if !get_piece_at_position(to_position[0], to_position[1]).nil?
+      raise MoveError.new "That position is occupied."
       # return false
     else
       if jump_move?(from_position, to_position)
-        if get_piece_at_position(position_in_between(from_position, to_position)).nil?
-          raise MoveError "You cannot jump if there is no piece in between."
+        pos_between = position_in_between(from_position, to_position)
+        if get_piece_at_position(pos_between[0], pos_between[1]).nil?
+          raise MoveError.new "You cannot jump if there is no piece in between."
           # return false
+        end
       else
-        if !possible_moves(from_position).include?(to_position)
-        # return false
+        if !possible_moves(from_position, piece).include?(to_position)
+          raise MoveError.new "That is not a valid move."
+          # return false
+        end
       end
     end
-
-
+    return true
   end
 
   def jump_move?(from_position, to_position)
