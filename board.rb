@@ -64,6 +64,50 @@ class Board
     @grid[row][column]
   end
 
+  def jump_available?(current_color)
+    8.times do |row|
+      8.times do |column|
+        if !@grid[row][column].nil?
+          piece = get_piece_at_position(row, column)
+          if piece.color == current_color
+            jump_moves = piece_jump_moves([row, column])
+            if jump_possible?([row, column], jump_moves, current_color)
+              return true
+            end
+          end
+        end
+      end
+    end
+    false
+  end
+
+  def jump_possible?(from_position, jump_moves, current_color)
+    jump_moves.each do |jump_vector|
+      to_position = from_position.zip(jump_vector).map { |x,y| x+y }
+      pos_between = position_in_between(from_position, to_position)
+      piece_between = get_piece_at_position(pos_between[0], pos_between[1])
+      if get_piece_at_position(to_position[0], to_position[1]).nil?
+        if !piece_between.nil? && piece_between.color != current_color
+          return true
+        end
+      end
+    end
+    false
+  end
+
+  def piece_jump_moves(from_position)
+    jump_moves = []
+    piece = get_piece_at_position(from_position[0], from_position[1])
+    pos_moves = possible_moves(from_position, piece)
+    pos_moves.each do |move|
+      if move[0].abs == 2 && move[1].abs == 2
+        jump_moves << move
+      end
+    end
+    return pos_moves
+    return jump_moves
+  end
+
   def perform_slide(from_position, to_position)
       piece = get_piece_at_position(from_position[0], from_position[1])
       @grid[from_position[0]][from_position[1]] = nil
